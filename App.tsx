@@ -1,30 +1,30 @@
 
 import React, { useState } from 'react';
 import Header from './components/Header';
-import AetherMaze from './components/AetherMaze';
 import AetherSculpt from './components/AetherSculpt';
-import AetherNarrative from './components/AetherNarrative';
-import AetherSim from './components/AetherSim';
+import AetherWorld from './components/AetherWorld';
+import AetherCode from './components/AetherCode';
+import AetherMetrics from './components/AetherMetrics';
 import AetherLink from './components/AetherLink';
 import Footer from './components/Footer';
 
 const App: React.FC = () => {
-  const [activeTool, setActiveTool] = useState<string>('maze');
+  const [activeTool, setActiveTool] = useState<string>('sculpt');
 
   const renderContent = () => {
       switch(activeTool) {
           case 'home':
-          case 'maze': return <AetherMaze />;
           case 'sculpt': return <AetherSculpt />;
-          case 'narrative': return <AetherNarrative />;
-          case 'sim': return <AetherSim />;
+          case 'world': return <AetherWorld />;
+          case 'code': return <AetherCode />;
+          case 'metrics': return <AetherMetrics />;
           case 'link': return <AetherLink />;
-          default: return <AetherMaze />;
+          default: return <AetherSculpt />;
       }
   };
 
   return (
-    <div className="bg-slate-950 text-slate-200 min-h-screen flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-100">
+    <div className="min-h-screen flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-100">
       <Header activeTool={activeTool} setActiveTool={setActiveTool} />
       <main className="flex-grow container mx-auto px-4 py-8 h-full">
         {renderContent()}

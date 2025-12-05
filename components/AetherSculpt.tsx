@@ -7,188 +7,185 @@ import Button from './common/Button';
 import Select from './common/Select';
 import Spinner from './common/Spinner';
 
-const AetherSculpt: React.FC = () => {
-  const [prompt, setPrompt] = useState<string>('Ancient obelisk made of obsidian with glowing cyan runes');
-  const [assetType, setAssetType] = useState<string>('Prop');
-  const [style, setStyle] = useState<string>('Cyberpunk');
-  
-  // Quantum Parameters
-  const [polyTarget, setPolyTarget] = useState<string>('50k');
-  const [naniteMode, setNaniteMode] = useState<boolean>(true);
+const PipelineStep: React.FC<{ label: string; active: boolean; completed: boolean }> = ({ label, active, completed }) => (
+    <div className={`flex flex-col items-center space-y-2 relative z-10 w-24`}>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${
+            completed ? 'bg-emerald-500 border-emerald-500 text-black' : 
+            active ? 'bg-black border-emerald-400 text-emerald-400 animate-pulse' : 
+            'bg-slate-900 border-slate-700 text-slate-600'
+        }`}>
+            {completed ? (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+            ) : (
+                <div className={`w-2 h-2 rounded-full ${active ? 'bg-emerald-400' : 'bg-slate-700'}`}></div>
+            )}
+        </div>
+        <span className={`text-[9px] font-mono uppercase tracking-wide text-center ${active || completed ? 'text-emerald-400' : 'text-slate-600'}`}>{label}</span>
+    </div>
+);
 
-  const [generatedAssets, setGeneratedAssets] = useState<GeneratedAsset[]>([]);
+const AetherSculpt: React.FC = () => {
+  const [prompt, setPrompt] = useState<string>('Cyberpunk vending machine with holographic display');
+  const [polyBudget, setPolyBudget] = useState('Low (Mobile)');
+  const [useNanite, setUseNanite] = useState(false);
+  const [useRigging, setUseRigging] = useState(false);
+  const [generatedAsset, setGeneratedAsset] = useState<GeneratedAsset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [pipelineState, setPipelineState] = useState(0);
+
+  const pipelineSteps = ['Voxelize', 'Retopo', 'UV Map', 'LOD Gen', 'Export'];
 
   const handleGenerate = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
-    setGeneratedAssets([]);
+    setPipelineState(0);
+    setGeneratedAsset(null);
 
-    const fullPrompt = `Generate a high-fidelity Concept Art for a 3D Game Asset.
-      TYPE: ${assetType}
-      STYLE: ${style}
-      DESCRIPTION: ${prompt}
-      TECHNICAL SPECS: Target Polycount: ${polyTarget}, Nanite Optimized: ${naniteMode ? 'YES' : 'NO'}.
-      VISUALS: Isolate on dark neutral background. Show front and 3/4 perspective if possible. Photorealistic, 8k resolution, Unreal Engine 5 render style.`;
+    // Simulate pipeline progression
+    const interval = setInterval(() => {
+        setPipelineState(prev => {
+            if (prev >= pipelineSteps.length) {
+                clearInterval(interval);
+                return prev;
+            }
+            return prev + 1;
+        });
+    }, 800);
 
     try {
-      const images = await generateAssetConcept(fullPrompt);
-      const newAssets: GeneratedAsset[] = images.map((src, index) => ({
-        id: `${Date.now()}-${index}`,
-        src,
-        prompt: fullPrompt,
-      }));
-      setGeneratedAssets(newAssets);
+      const techSpecs = `Poly: ${polyBudget}, Nanite: ${useNanite}, Rig: ${useRigging}`;
+      const images = await generateAssetConcept(prompt, techSpecs);
+      
+      // Wait for "pipeline" simulation
+      await new Promise(r => setTimeout(r, 4000));
+      
+      setGeneratedAsset({
+        id: Date.now().toString(),
+        src: images[0],
+        prompt,
+        polyCount: useNanite ? 'NANITE_MAX' : '15k_TRIS',
+        pipelineSteps: pipelineSteps
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      console.error(err);
     } finally {
       setIsLoading(false);
+      clearInterval(interval);
     }
-  }, [prompt, assetType, style, polyTarget, naniteMode]);
+  }, [prompt, polyBudget, useNanite, useRigging]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
-      <Card className="lg:col-span-1 h-fit relative overflow-hidden">
-        {/* Decorative Grid Background */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
-        
-        <div className="space-y-6 relative z-10">
-          <div className="border-b border-white/10 pb-4">
-             <h2 className="text-xl font-bold text-white flex items-center gap-2 font-mono tracking-wide">
-                <span className="text-cyan-400">01.</span> AETHER<span className="text-cyan-500">SCULPT</span>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+      {/* Controls */}
+      <Card className="lg:col-span-4 h-fit border-emerald-500/20 bg-slate-900/40">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+             <h2 className="text-lg font-mono font-bold text-white tracking-widest">
+                AETHER<span className="text-emerald-500">SCULPT</span>
              </h2>
-             <p className="text-[10px] text-cyan-500/70 font-mono mt-1 uppercase">Mesh Generation Pipeline // Active</p>
+             <span className="text-[10px] text-emerald-500/50 font-mono">WORKER: TRIPO-SR (4-BIT)</span>
           </div>
 
           <div>
-            <label htmlFor="prompt" className="block text-xs font-mono text-cyan-500/80 mb-2 uppercase tracking-widest">
-                Semantic Prompt
-            </label>
+            <label className="block text-[10px] font-mono text-emerald-500/70 mb-2 uppercase tracking-widest">Semantic Input</label>
             <textarea
-                id="prompt"
-                rows={4}
-                className="w-full bg-slate-950/50 border border-slate-800 rounded-lg px-4 py-3 text-slate-200 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition placeholder-slate-700 font-mono text-sm resize-none"
+                rows={3}
+                className="w-full bg-black/50 border border-slate-700 rounded p-3 text-slate-200 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 text-xs font-mono"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="INPUT_ASSET_DESCRIPTION..."
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-             <Select 
-                id="asset-type" 
-                label="Class"
-                value={assetType}
-                onChange={(e) => setAssetType(e.target.value)}
-            >
-                <option>Vegetation</option>
-                <option>Geological</option>
-                <option>Structure</option>
-                <option>Equipment</option>
-                <option>Character</option>
-                <option>Artifact</option>
-            </Select>
-
-            <Select 
-                id="asset-style" 
-                label="Style Matrix"
-                value={style}
-                onChange={(e) => setStyle(e.target.value)}
-            >
-                <option>Cyberpunk</option>
-                <option>High Fantasy</option>
-                <option>Photoreal</option>
-                <option>Stylized</option>
-                <option>Eldritch</option>
-            </Select>
-          </div>
-
-          {/* Quantum Parameters */}
-          <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800 space-y-4">
-             <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-slate-400 uppercase">Poly Budget</span>
-                <span className="text-xs font-mono text-cyan-400">{polyTarget}</span>
-             </div>
-             <input 
-                type="range" 
-                min="1" 
-                max="5" 
-                step="1"
-                className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                onChange={(e) => {
-                    const vals = ['1k', '10k', '50k', '100k', 'Nanite (Max)'];
-                    setPolyTarget(vals[parseInt(e.target.value) - 1]);
-                }}
-             />
+          <div className="space-y-4 p-4 bg-black/30 rounded border border-slate-800">
+             <h3 className="text-[10px] text-slate-500 font-mono uppercase tracking-widest border-b border-slate-800 pb-2 mb-2">Optimization Pipeline</h3>
              
-             <div className="flex items-center justify-between pt-2">
-                <span className="text-xs font-mono text-slate-400 uppercase">Nanite Virtualization</span>
-                <button 
-                    onClick={() => setNaniteMode(!naniteMode)}
-                    className={`w-10 h-5 rounded-full relative transition-colors ${naniteMode ? 'bg-cyan-600' : 'bg-slate-700'}`}
-                >
-                    <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${naniteMode ? 'translate-x-5' : 'translate-x-0'}`}></div>
+             <Select id="poly" label="Poly Budget" value={polyBudget} onChange={e => setPolyBudget(e.target.value)}>
+                <option>Low (Mobile)</option>
+                <option>Medium (Console)</option>
+                <option>High (PC)</option>
+                <option>Cinematic</option>
+             </Select>
+
+             <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-slate-400">Nanite Virtualization</span>
+                <button onClick={() => setUseNanite(!useNanite)} className={`w-8 h-4 rounded-full relative transition-colors ${useNanite ? 'bg-emerald-600' : 'bg-slate-700'}`}>
+                    <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${useNanite ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                </button>
+             </div>
+
+             <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-slate-400">Auto-Rigging (IK)</span>
+                <button onClick={() => setUseRigging(!useRigging)} className={`w-8 h-4 rounded-full relative transition-colors ${useRigging ? 'bg-emerald-600' : 'bg-slate-700'}`}>
+                    <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${useRigging ? 'translate-x-4' : 'translate-x-0'}`}></div>
                 </button>
              </div>
           </div>
           
-          <Button onClick={handleGenerate} isLoading={isLoading} className="w-full">
-            EXECUTE JOB
+          <Button onClick={handleGenerate} isLoading={isLoading} className="w-full bg-emerald-500/10 border-emerald-500/50 hover:bg-emerald-500/20 text-emerald-400">
+            INITIALIZE PIPELINE
           </Button>
         </div>
       </Card>
       
-      <div className="lg:col-span-2">
-         <Card className="h-full min-h-[500px] flex flex-col bg-slate-900/40 relative">
-            <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-2">
-                <h2 className="text-sm font-mono font-bold text-slate-400 uppercase tracking-widest">Viewport // Render_01</h2>
-                <div className="flex space-x-4 text-[10px] font-mono text-slate-600">
-                    <span>GPU: ROCm_DETECTED</span>
-                    <span>Q: IDLE</span>
-                </div>
-            </div>
-            
-             {isLoading && <div className="flex-grow flex flex-col items-center justify-center space-y-6">
-                 <div className="relative">
-                    <Spinner size="16"/>
-                    <div className="absolute inset-0 animate-ping opacity-20 bg-cyan-500 rounded-full"></div>
+      {/* Viewport / Holodeck */}
+      <div className="lg:col-span-8 flex flex-col gap-4">
+        {/* Pipeline Visualizer */}
+        <div className="h-20 bg-black/40 border border-slate-800 rounded-lg flex items-center justify-between px-8 relative overflow-hidden">
+             {/* Connection Line */}
+             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
+             <div className="absolute top-1/2 left-0 h-0.5 bg-emerald-500/50 -translate-y-1/2 z-0 transition-all duration-500" style={{ width: `${(pipelineState / pipelineSteps.length) * 100}%` }}></div>
+             
+             {pipelineSteps.map((step, idx) => (
+                 <PipelineStep 
+                    key={step} 
+                    label={step} 
+                    active={isLoading && idx === pipelineState} 
+                    completed={!isLoading && generatedAsset ? true : idx < pipelineState} 
+                />
+             ))}
+        </div>
+
+        {/* 3D Viewport Simulation */}
+        <Card className="flex-grow bg-black relative overflow-hidden flex flex-col items-center justify-center p-0 border-slate-800 group">
+             {/* Grid Floor */}
+             <div className="absolute inset-0 holodeck-floor opacity-30">
+                <div className="holodeck-grid w-full h-[200%] bg-[linear-gradient(0deg,transparent_24%,rgba(16,185,129,0.1)_25%,rgba(16,185,129,0.1)_26%,transparent_27%,transparent_74%,rgba(16,185,129,0.1)_75%,rgba(16,185,129,0.1)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,rgba(16,185,129,0.1)_25%,rgba(16,185,129,0.1)_26%,transparent_27%,transparent_74%,rgba(16,185,129,0.1)_75%,rgba(16,185,129,0.1)_76%,transparent_77%,transparent)] bg-[length:50px_50px]"></div>
+             </div>
+
+             {/* UI Overlay */}
+             <div className="absolute top-4 left-4 flex flex-col space-y-1">
+                 <span className="text-[10px] font-mono text-emerald-500">VIEWPORT: PERSPECTIVE</span>
+                 <span className="text-[10px] font-mono text-slate-500">LIT / WIREFRAME OFF</span>
+             </div>
+
+             {isLoading && (
+                 <div className="relative z-10 flex flex-col items-center">
+                    <Spinner size="12" />
+                    <p className="mt-4 font-mono text-xs text-emerald-500 animate-pulse">PROCESSING GEOMETRY...</p>
                  </div>
-                 <div className="text-center font-mono space-y-1">
-                     <p className="text-cyan-400 text-xs animate-pulse">>> INITIATING DIFFUSION MODEL...</p>
-                     <p className="text-slate-500 text-[10px]">Optimizing Geometry Topology</p>
-                 </div>
-             </div>}
-             
-             {error && <div className="flex-grow flex items-center justify-center"><p className="text-rose-400 bg-rose-950/30 p-6 rounded-lg border border-rose-900/50 font-mono text-sm">{error}</p></div>}
-             
-             {!isLoading && !error && generatedAssets.length === 0 && 
-                <div className="flex-grow flex flex-col items-center justify-center text-center text-slate-600 max-w-sm mx-auto select-none">
-                     <div className="w-24 h-24 border border-slate-800 rounded-full flex items-center justify-center mb-6 opacity-50">
-                        <svg className="w-10 h-10 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                        </svg>
-                     </div>
-                    <p className="font-mono text-xs tracking-wide">AWAITING INPUT PARAMETERS</p>
-                </div>
-             }
-             
-             {generatedAssets.length > 0 && (
-                <div className="grid grid-cols-1 gap-6 p-4 animate-fade-in">
-                    {generatedAssets.map(asset => (
-                        <div key={asset.id} className="group relative bg-black rounded-lg overflow-hidden border border-slate-800 shadow-2xl">
-                            <img src={asset.src} alt="Generated asset" className="w-full h-auto object-cover max-h-[600px] opacity-90 group-hover:opacity-100 transition-opacity" />
-                            <div className="absolute top-4 right-4 bg-black/60 backdrop-blur text-cyan-400 text-[10px] font-mono px-2 py-1 rounded border border-cyan-500/30">
-                                8K_PREVIEW
-                            </div>
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                <p className="text-white text-xs font-mono line-clamp-2">{asset.prompt}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
              )}
-         </Card>
+
+             {!isLoading && !generatedAsset && (
+                 <div className="relative z-10 text-center opacity-50">
+                    <div className="w-16 h-16 border border-slate-700 rounded mx-auto mb-4 flex items-center justify-center">
+                        <span className="text-2xl text-slate-700 font-mono">+</span>
+                    </div>
+                    <p className="font-mono text-xs text-slate-600">AWAITING INPUT</p>
+                 </div>
+             )}
+
+             {generatedAsset && (
+                 <div className="relative z-10 w-full h-full flex items-center justify-center p-8">
+                     <img src={generatedAsset.src} className="max-h-full max-w-full object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-fade-in" />
+                     
+                     {/* Asset Stats Overlay */}
+                     <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur border border-slate-700 p-3 rounded text-right space-y-1">
+                         <div className="text-[10px] font-mono text-slate-400">TRIS: <span className="text-white">{generatedAsset.polyCount}</span></div>
+                         <div className="text-[10px] font-mono text-slate-400">MATS: <span className="text-white">1 (ORM PACKED)</span></div>
+                         <div className="text-[10px] font-mono text-slate-400">RIG: <span className="text-white">{useRigging ? 'HUMANOID_IK' : 'NONE'}</span></div>
+                     </div>
+                 </div>
+             )}
+        </Card>
       </div>
     </div>
   );

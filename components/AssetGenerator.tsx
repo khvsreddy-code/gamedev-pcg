@@ -32,6 +32,8 @@ const AssetGenerator: React.FC = () => {
         id: `${Date.now()}-${index}`,
         src,
         prompt: fullPrompt,
+        polyCount: 'N/A',
+        pipelineSteps: []
       }));
       setGeneratedAssets(newAssets);
     } catch (err) {
