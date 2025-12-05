@@ -1,0 +1,5 @@
+{
+  "name": "GameDev PCG Studio",
+  "description": "A suite of AI-powered Procedural Content Generation (PCG) tools for game developers. Generate unique roguelike dungeon levels and concept art for 3D assets like trees, rocks, and buildings for open-world games.",
+  "requestFramePermissions": []
+}
