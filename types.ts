@@ -15,3 +15,10 @@ export interface GeneratedAsset {
   src: string;
   prompt: string;
 }
+
+export interface GeneratedLore {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+}

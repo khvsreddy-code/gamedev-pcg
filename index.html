@@ -4,11 +4,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GameDev PCG Studio</title>
+    <title>AetherForge V6.1 (Quantum)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {
-        background-color: #111827; /* bg-gray-900 */
+        background-color: #020617; /* slate-950 - Darker for contrast */
+        background-image: 
+          radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+          radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+        background-attachment: fixed;
+      }
+      /* Custom scrollbar for that "IDE" feel */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0f172a; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #334155; 
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #06b6d4; 
       }
     </style>
   <script type="importmap">

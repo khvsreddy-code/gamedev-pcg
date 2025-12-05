@@ -5,7 +5,7 @@ import Spinner from './Spinner';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   isLoading?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
   icon?: React.ReactNode;
 }
 
@@ -17,25 +17,22 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseClasses =
-    'px-6 py-3 rounded-lg font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center space-x-2';
+    'px-6 py-3 rounded-lg font-mono text-sm font-bold tracking-wider uppercase transition-all duration-200 ease-out transform active:scale-[0.98] flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale';
   
   const variantClasses = {
-    primary: 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500',
-    secondary: 'bg-gray-600 text-gray-200 hover:bg-gray-500 focus:ring-gray-400',
+    primary: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/20 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] focus:ring-cyan-500',
+    secondary: 'bg-slate-800/50 text-slate-300 border border-slate-700 hover:bg-slate-700/50 hover:text-white hover:border-slate-500 focus:ring-slate-500',
+    danger: 'bg-rose-500/10 text-rose-400 border border-rose-500/50 hover:bg-rose-500/20 hover:border-rose-400 hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] focus:ring-rose-500',
   };
-
-  const disabledClasses = 'opacity-50 cursor-not-allowed';
 
   return (
     <button
-      className={`${baseClasses} ${variantClasses[variant]} ${
-        (props.disabled || isLoading) ? disabledClasses : ''
-      }`}
+      className={`${baseClasses} ${variantClasses[variant]}`}
       disabled={props.disabled || isLoading}
       {...props}
     >
       {isLoading ? (
-        <Spinner size="5" />
+        <Spinner size="4" />
       ) : (
         <>
           {icon}
